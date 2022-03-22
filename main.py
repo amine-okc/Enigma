@@ -4,35 +4,44 @@ from PyQt6 import QtCore, QtGui, QtWidgets
 import json
 import numpy
 
+
+# Open the file which contains the preconfig of rotors and reflector, and put the values on the variable of the same name
 f = open('values.json')
 values = json.load(f)
-alphabet = []
 
+# initialize alphabet using ASCII 
+alphabet = []
 for j in range(26):
     alphabet.append(chr(j + 65))
-
+    
+    
+# set the preconfig of rotors and reflector
 rotor1 = values["rotor1"]
 rotor2 = values["rotor2"]
 rotor3 = values["rotor3"]
+reflector = values["reflector"]
+
+
 position = 0
 
-keyGlobal = []
 
-reflector = values["reflector"]
+# the positions of red and blue in the alphabet, rotor 1,2,3 and reflector, respectively, in every encrypt or decrypt action
 red = [-1,-1, -1, -1, -1]
 blue = [-1,-1, -1, -1, -1]
 
+
+# a variable to set the order of rotors according to the given key
 rotorsOrder = []
 
+rotorsTurn = [0,0,0]
+actualRotor = -1
 
 
 
-
-
-
-
-
- 
+# a function to draw the reflector, rotors and alphabet boxes in the PyQT6 interface
+# data is the values of the box (whatever it is), numRows is the number of rows (1 or 2)
+# r is the red position (selected value for the going step), b is the blue position (selected value for the back step)
+# type represents the type of values (Str o Int)
 def boxDraw(data, numRows, r, b, type):
 
     a = "<html><head></head><body>"
@@ -106,17 +115,20 @@ def boxDraw(data, numRows, r, b, type):
     a += "</body></html>"
     return a
 
+
+# a function to split the given key into three parts, and return a list of three lists, each list is the config a rotor
 def KeySplit(key):
     global actualRotor
-    parts = key.split(" ")
-    if (len(parts) != 3):
+    k = []
+    parts = key.split(" ") # split the key into parts 
+    if (len(parts) != 3):   # if the number of parts is greater or less than 3
         return "Erreur : nombre de rotors invalide"
 
 
     rotors = []
     for i in range(len(parts)):
         parts[i] = parts[i][1:len(parts[i])-1]
-        if(len(parts[i].split(",")) != 3): # if number of values != 3
+        if(len(parts[i].split(",")) != 3): # if number of values in the rotor config is different of 3
             return "Erreur : nombre de paramètres invalide"
 
         rotors.append(parts[i].split(",")[0]) # extract rotor index
@@ -124,7 +136,7 @@ def KeySplit(key):
             return "Erreur : Direction invalide."
         if(parts[i].split(",")[2][1:].isnumeric() == False or parts[i].split(",")[2][0] != "-" and parts[i].split(",")[2][0] != "+"):
             return "Erreur : Nombre de décalages invalide."
-    if(len(set(rotors)) != len(rotors)): # check if all rotors ar different
+    if(len(set(rotors)) != len(rotors)): # check if all rotors are different
         return "Erreur : Rotors dupliqués"
 
 
@@ -133,32 +145,36 @@ def KeySplit(key):
     rotor3 = parts[2].split(",")
     rotors = [rotor1[0], rotor2[0], rotor3[0]]
     for i in range(len(rotors)):
-        if (rotors[i] not in {"R1", "R2", "R3"}):
+        if (rotors[i] not in {"R1", "R2", "R3"}): # the rotors' names should be R1, R2 or R3, nothing else
             return "Erreur : Nom de rotor invalide."
-    print(rotor1, rotor2, rotor3)
-    keyGlobal.append(rotor1)
-    keyGlobal.append(rotor2)
-    keyGlobal.append(rotor3)
+    k.append(rotor1)
+    k.append(rotor2)
+    k.append(rotor3)
     for i in range(3):
-        if(keyGlobal[i][0] == "R1"):
-            new = [0, keyGlobal[i][1]]
+        if(k[i][0] == "R1"):
+            new = [0, k[i][1]]
             rotorsOrder.append(new)
 
-        elif(keyGlobal[i][0] == "R2"):
-            new = [1, keyGlobal[i][1]]
+        elif(k[i][0] == "R2"):
+            new = [1, k[i][1]]
             rotorsOrder.append(new)
-        elif(keyGlobal[i][0] == "R3"):
-            new = [2, keyGlobal[i][1]]
+        elif(k[i][0] == "R3"):
+            new = [2, k[i][1]]
             rotorsOrder.append(new)
     actualRotor = rotorsOrder[0][0]
     return [rotor1, rotor2, rotor3]
 
 
 
+
+
+# Initialize the rotors (preconfiguration from the file values.json)
 def InitRotors(list, num):
     new = numpy.roll(list, num)
     return new
 
+
+# Shift the selected rotor (the parameter list) right or left (direction) once
 def ShiftRotor(list, direction):
     if (direction == "G"):
         new = numpy.roll(list, 1)
@@ -166,19 +182,23 @@ def ShiftRotor(list, direction):
         new = numpy.roll(list, -1)
     return new
 
-rotorsTurn = [0,0,0]
-actualRotor = -1
+
 
 
 
     
 class Ui_MainWindow(object):
-    key = ""
-    actualLetter = 0
-    action = ""
+    
+    key = "" # the actual key
+    actualLetter = 0 # the position of the actual letter the is encrypting/decrypting
+    action = "" # the current action (decrypt or encrypt) 
+    
+    # the default rotors with the key config
     defaultRotor1 = []
     defaultRotor2 = []
     defaultRotor3 = []
+    
+    # Preparing the interface, creating all the components
     def setupUi(self, MainWindow):
         
         MainWindow.setObjectName("MainWindow")
@@ -288,17 +308,18 @@ class Ui_MainWindow(object):
         self.encryptBtn.clicked.connect(self.EncryptEvent)
         self.nextStepBtn.clicked.connect(lambda:self.NextStepEvent(self.action))
         self.decryptBtn.clicked.connect(self.DecryptEvent)
+        
+        
 
-
+    # Shift the actual rotor
     def Shift(self):
         global rotor1,rotor2,rotor3
         global rotorsTurn
         global actualRotor
-        global keyGlobal
         global position
         global rotorsOrder
 
-
+        # if the number of shifts of the actual rotor is less than 26 then it will continue to shift
         if(rotorsTurn[actualRotor] < 26):
             if(actualRotor == 0):
                 rotor1[0] = ShiftRotor(rotor1[0], rotorsOrder[0][1])
@@ -312,6 +333,9 @@ class Ui_MainWindow(object):
                 rotor3[0] = ShiftRotor(rotor3[0], rotorsOrder[2][1])
                 rotor3[1] = ShiftRotor(rotor3[1], rotorsOrder[2][1])
                 rotorsTurn[2] += 1
+        # else: if we didn't shift all the rotors, we pass to the next rotor according to the order of the key
+              # else we come back to the first rotor of the key
+           
         else:
             if(position < 2):
                 position += 1
@@ -320,9 +344,12 @@ class Ui_MainWindow(object):
                 position = 0
                 actualRotor = rotorsOrder[0][0]
                 rotorsTurn = [0,0,0]
+                
+    # when clicking on Configuration of Rotors button
     def ConfigureEvent(self):
         global rotor1, rotor2,rotor3
         f = open('values.json')
+        # the rotors will be set to the preconfig of the json file first
         values = json.load(f)
         rotor1 = values["rotor1"]
         rotor2 = values["rotor2"]
@@ -330,22 +357,26 @@ class Ui_MainWindow(object):
 
 
         _translate = QtCore.QCoreApplication.translate
+        # if the key input is empty
         if(self.keyInput.text() == ""):
             self.keyError.setStyleSheet('color : red')
             self.keyError.setText(_translate("MainWindow", "Veuillez insérer la clé.")) # display the error 
             return
+        # if the given key is the same with the last configured key
         elif(self.key == self.keyInput.text()):
             self.keyError.setStyleSheet('color : red')
             self.keyError.setText(_translate("MainWindow", "Clé déjà configurée")) # display the error 
             return
         self.key = self.keyInput.text()
 
+        # split the given key
         res = KeySplit(self.key)
-
+        # if the KeySplit return is a string then it's absolutely an error the was returned, it will be displayed in the KeyError label
         if(type(res) is str):
             self.keyError.setStyleSheet('color : red')
             self.keyError.setText(_translate("MainWindow", res)) # display the error
             self.key = ""
+        # the given key is valid
         else:
             self.keyError.setStyleSheet('color : green')
             self.keyError.setText(_translate("MainWindow", "Clé valide"))
@@ -366,11 +397,18 @@ class Ui_MainWindow(object):
             self.rotor2.setText(_translate("MainWindow", boxDraw(rotor2, 2, red[2], blue[2], 'int')))
             self.rotor1.setText(_translate("MainWindow", boxDraw(rotor1, 2, red[1], blue[1], 'int')))
 
+            
+    # when clicking on Encrypt button
     def EncryptEvent(self):
         _translate = QtCore.QCoreApplication.translate
+        # if no key has been configured
         if(self.key == ""):
             self.keyError.setStyleSheet('color : red')
             self.keyError.setText(_translate("MainWindow", "Rotors non configurés")) 
+            return
+        if(self.zoneOne.toPlainText() == ""):
+            self.keyError.setStyleSheet('color : red')
+            self.keyError.setText(_translate("MainWindow", "Le champs de texte est vide.")) 
             return
         self.keyError.setStyleSheet('color : #2f3994')
         self.keyError.setText(_translate("MainWindow", "Encryptage en cours.."))
@@ -504,6 +542,10 @@ class Ui_MainWindow(object):
             self.keyError.setStyleSheet('color : red')
             self.keyError.setText(_translate("MainWindow", "Rotors non configurés")) 
             return
+        if(self.zoneTwo.toPlainText() == ""):
+            self.keyError.setStyleSheet('color : red')
+            self.keyError.setText(_translate("MainWindow", "Le champs de texte est vide.")) 
+            return
         self.keyError.setStyleSheet('color : #1b204d')
         self.keyError.setText(_translate("MainWindow", "Décryptage en cours.."))
         self.action = "decrypt"
@@ -541,29 +583,17 @@ class Ui_MainWindow(object):
         self.nextStepBtn.setEnabled(False)
 
 
-    def Style(self):
-        buttonStyle = "border-radius:15px; background-color:#1c1d4d;color:#e4e4e4"
-        inputStyle = "border-radius : 15px"
-        self.decryptBtn.setStyleSheet(buttonStyle)
-        self.encryptBtn.setStyleSheet(buttonStyle)
-        self.nextStepBtn.setStyleSheet(buttonStyle)
-        self.configBtn.setStyleSheet(buttonStyle)
-        self.keyInput.setStyleSheet(inputStyle)
-        self.zoneOne.setStyleSheet(inputStyle)
-        self.zoneTwo.setStyleSheet(inputStyle)
-
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
     with open('style.css', 'r') as f:
         style = f.read()
-        # Set the stylesheet of the application
+        # set the stylesheet of the interface
         app.setStyleSheet(style)
 
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
-   #ui.Style()
     MainWindow.show()
     sys.exit(app.exec())
