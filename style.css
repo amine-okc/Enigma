@@ -1,0 +1,6 @@
+QWidget{background-color: #00030a;color:#b9d6f1}
+QPushButton { color: #e6e6e6; background-color: #303070;border-radius : 12px; border: 2px solid #1f1f4eb6}
+QPushButton:hover{background-color: #4343a0;}
+QPushButton:disabled{color:#9e9e9e; background-color: #13132e;border-radius : 12px; border: 2px solid #0f0f27b6}
+QTextEdit,QLineEdit{border: 1px solid grey; border-radius:10px; background-color: #050f25;padding:10px; color:#b9d6f1}
+QLabel{font-weight: 500;font-family:Verdana, Geneva, Tahoma, sans-serif;}
