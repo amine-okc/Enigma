@@ -531,7 +531,7 @@ class Ui_MainWindow(object):
         self.actionQuitter.setText(_translate("MainWindow", "Quitter"))
         self.keyLabel.setText(_translate("MainWindow", "Clé : "))
         self.keyError.setText(_translate("MainWindow", ""))
-        self.keyInput.setPlaceholderText(_translate("MainWindow", "Saisir votre clé (Ex : (R3, G, +7)(R2, D, -6)(R1, D, +5)"))
+        self.keyInput.setPlaceholderText(_translate("MainWindow", "Ex : (R3, G, +7) (R2, D, -6) (R1, D, +5)"))
         self.zoneOne.setPlaceholderText(_translate("MainWindow", "Taper un message à encrypter ou affichage du résultat de décryption"))
         self.configBtn.setText(_translate("MainWindow", "Configurer Rotors"))
         self.encryptBtn.setText(_translate("MainWindow", "Encrypter"))
