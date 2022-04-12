@@ -1,6 +1,7 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
+
 import json
 import numpy
 
@@ -21,7 +22,7 @@ rotor2 = values["rotor2"]
 rotor3 = values["rotor3"]
 reflector = values["reflector"]
 
-
+# the actual selected rotor to be shifted
 position = 0
 
 
@@ -202,7 +203,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setFixedSize(898, 680)
+        MainWindow.setFixedSize(920, 680)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.reflector = QtWidgets.QLabel(self.centralwidget)
@@ -225,22 +226,25 @@ class Ui_MainWindow(object):
         self.alphabet.setGeometry(QtCore.QRect(20, 290, 781, 60))
         self.alphabet.setObjectName("alphabet")
         self.alphabet.setStyleSheet("font: 9pt \"DejaVu Sans Mono\";font-weight:1000;color:white;")
+        
+        labelStyle = "font: 9pt \"Sawasdee Bold\";color:#b9d6f1; background-color : #252564; border-radius : 15px;padding:20px"
+        
         self.refLabel = QtWidgets.QLabel(self.centralwidget)
-        self.refLabel.setGeometry(QtCore.QRect(800, 27, 100, 25))
+        self.refLabel.setGeometry(QtCore.QRect(800, 15, 105, 50))
         self.refLabel.setObjectName("refLabel")
-        self.refLabel.setStyleSheet("font: 9pt \"DejaVu Sans Mono\";font-weight:1000;color:white")
+        self.refLabel.setStyleSheet(labelStyle)
         self.rotor1Label = QtWidgets.QLabel(self.centralwidget)
-        self.rotor1Label.setGeometry(QtCore.QRect(800, 243, 54, 17))
+        self.rotor1Label.setGeometry(QtCore.QRect(800, 230, 88, 50))
         self.rotor1Label.setObjectName("rotor1Label")
-        self.rotor1Label.setStyleSheet("font: 9pt \"DejaVu Sans Mono\";font-weight:1000;color:white")
+        self.rotor1Label.setStyleSheet(labelStyle)
         self.rotor3Label = QtWidgets.QLabel(self.centralwidget)
-        self.rotor3Label.setGeometry(QtCore.QRect(800, 103, 54, 16))
+        self.rotor3Label.setGeometry(QtCore.QRect(800, 92, 88, 50))
         self.rotor3Label.setObjectName("rotor3Label")
-        self.rotor3Label.setStyleSheet("font: 9pt \"DejaVu Sans Mono\";font-weight:1000;color:white")
+        self.rotor3Label.setStyleSheet(labelStyle)
         self.rotor2Label = QtWidgets.QLabel(self.centralwidget)
-        self.rotor2Label.setGeometry(QtCore.QRect(800, 173, 54, 17))
+        self.rotor2Label.setGeometry(QtCore.QRect(800, 160, 88, 50))
         self.rotor2Label.setObjectName("rotor2Label")
-        self.rotor2Label.setStyleSheet("font: 9pt \"DejaVu Sans Mono\";font-weight:1000;color:white")
+        self.rotor2Label.setStyleSheet(labelStyle); 
 
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 898, 22))
@@ -308,6 +312,7 @@ class Ui_MainWindow(object):
         self.encryptBtn.clicked.connect(self.EncryptEvent)
         self.nextStepBtn.clicked.connect(lambda:self.NextStepEvent(self.action))
         self.decryptBtn.clicked.connect(self.DecryptEvent)
+        self.keyInput.textChanged.connect(self.validKey)
         
         
 
@@ -344,6 +349,18 @@ class Ui_MainWindow(object):
                 position = 0
                 actualRotor = rotorsOrder[0][0]
                 rotorsTurn = [0,0,0]
+
+    def validKey(self):
+        _translate = QtCore.QCoreApplication.translate
+
+        # split the given key
+        res = KeySplit(self.keyInput.text())
+        # if the KeySplit return is a string then it's absolutely an error the was returned, it will be displayed in the KeyError label
+        if(type(res) is str):
+            self.keyInput.setStyleSheet('border :2px solid red')
+        # the given key is valid
+        else:
+            self.keyInput.setStyleSheet('border :2px solid green')
                 
     # when clicking on Configuration of Rotors button
     def ConfigureEvent(self):
@@ -546,7 +563,7 @@ class Ui_MainWindow(object):
             self.keyError.setStyleSheet('color : red')
             self.keyError.setText(_translate("MainWindow", "Le champs de texte est vide.")) 
             return
-        self.keyError.setStyleSheet('color : #1b204d')
+        self.keyError.setStyleSheet('color : #2f3994')
         self.keyError.setText(_translate("MainWindow", "Décryptage en cours.."))
         self.action = "decrypt"
         self.NextStepEvent("decrypt")
